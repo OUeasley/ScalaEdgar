@@ -1,4 +1,9 @@
+import sbt.Keys._
+import sbt.Project.projectToRef
+
 name := "ScalaEdgar"
+
+mainClass in Compile := Some("myPackage.aMainClass")
 
 version := "1.0"
 
@@ -6,48 +11,89 @@ lazy val `scalaedgar` = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.8"
 
-lazy val akkaVersion = "2.4.9"
-
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test )
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
-libraryDependencies ++= Seq(
-	"com.typesafe.akka" %% "akka-actor" % akkaVersion,
-	"com.typesafe.akka" %% "akka-agent" % akkaVersion,
-	"com.typesafe.akka" %% "akka-camel" % akkaVersion,
-	"com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-	"com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-	"com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
-	"com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
-	"com.typesafe.akka" %% "akka-contrib" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-core" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
-	"com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion,
-	"com.typesafe.akka" %% "akka-osgi" % akkaVersion,
-	"com.typesafe.akka" %% "akka-persistence" % akkaVersion,
-	"com.typesafe.akka" %% "akka-persistence-tck" % akkaVersion,
-	"com.typesafe.akka" %% "akka-remote" % akkaVersion,
-	"com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-	"com.typesafe.akka" %% "akka-stream" % akkaVersion,
-	"com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
-	"com.typesafe.akka" %% "akka-testkit" % akkaVersion,
-	"com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-typed-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-jackson-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-http-xml-experimental" % akkaVersion,
-	"com.typesafe.akka" %% "akka-persistence-query-experimental" % akkaVersion,
-	"org.scalactic" %% "scalactic" % "3.0.0",
-	"org.scalatest" %% "scalatest" % "3.0.0" % "test",
-	"com.netaporter" %% "scala-uri" % "0.4.14",
-	"org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-	"io.swagger" %% "swagger-play2" % "1.5.1"
-)
+// a special crossProject for configuring a JS/JVM/shared structure
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+  .settings(
+    scalaVersion := Settings.versions.scala,
+    libraryDependencies ++= Settings.sharedDependencies.value
+  )
+  // set up settings specific to the JS project
+  .jsConfigure(_ enablePlugins ScalaJSPlay)
 
-libraryDependencies += "org.scalaxb" % "scalaxb-maven-plugin" % "1.4.1"
+lazy val sharedJVM = shared.jvm.settings(name := "sharedJVM")
 
-libraryDependencies += "net.ruippeixotog" %% "scala-scraper" % "1.0.0"
+lazy val sharedJS = shared.js.settings(name := "sharedJS")
+
+// use eliding to drop some debug code in the production build
+lazy val elideOptions = settingKey[Seq[String]]("Set limit for elidable functions")
+
+// instantiate the JS project for SBT with some additional settings
+lazy val client: Project = (project in file("client"))
+  .settings(
+    name := "client",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
+    libraryDependencies ++= Settings.scalajsDependencies.value,
+    // by default we do development build, no eliding
+    elideOptions := Seq(),
+    scalacOptions ++= elideOptions.value,
+    jsDependencies ++= Settings.jsDependencies.value,
+    // RuntimeDOM is needed for tests
+    jsDependencies += RuntimeDOM % "test",
+    // yes, we want to package JS dependencies
+    skip in packageJSDependencies := false,
+    // use Scala.js provided launcher code to start the client app
+    persistLauncher := true,
+    persistLauncher in Test := false,
+    // use uTest framework for tests
+    testFrameworks += new TestFramework("utest.runner.Framework")
+  )
+  .enablePlugins(ScalaJSPlugin, ScalaJSPlay)
+  .dependsOn(sharedJS)
+
+// Client projects (just one in this case)
+lazy val clients = Seq(client)
+
+// instantiate the JVM project for SBT with some additional settings
+lazy val server = (project in file("server"))
+  .settings(
+    name := "server",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
+    libraryDependencies ++= Settings.jvmDependencies.value,
+    commands += ReleaseCmd,
+    // connect to the client project
+    scalaJSProjects := clients,
+    pipelineStages := Seq(scalaJSProd, digest, gzip),
+    // compress CSS
+    LessKeys.compress in Assets := true
+  )
+  .enablePlugins(PlayScala)
+  .disablePlugins(PlayLayoutPlugin) // use the standard directory layout instead of Play's custom
+  .aggregate(clients.map(projectToRef): _*)
+  .dependsOn(sharedJVM)
+
+// Command for building a release
+lazy val ReleaseCmd = Command.command("release") {
+  state => "set elideOptions in client := Seq(\"-Xelide-below\", \"WARNING\")" ::
+    "client/clean" ::
+    "client/test" ::
+    "server/clean" ::
+    "server/test" ::
+    "server/dist" ::
+    "set elideOptions in client := Seq()" ::
+    state
+}
+
+// lazy val root = (project in file(".")).aggregate(client, server)
+
+// loads the Play server project at sbt startup
+onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
