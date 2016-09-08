@@ -55,7 +55,8 @@ object Settings {
 	val jvmDependencies = Def.setting(Seq(
 		"com.vmunier" %% "play-scalajs-scripts" % versions.playScripts,
 		"org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
-		"org.webjars" % "bootstrap" % versions.bootstrap % Provided,
+		"org.webjars.bower" % "compass-mixins" % "0.12.7",
+		"org.webjars" % "bootstrap" % "4.0.0-alpha.3",
 		"com.lihaoyi" %% "utest" % versions.uTest % Test,
 		"com.typesafe.akka" %% "akka-actor" % akkaVersion,
 		"com.typesafe.akka" %% "akka-agent" % akkaVersion,

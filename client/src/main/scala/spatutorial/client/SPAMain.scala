@@ -40,10 +40,11 @@ object SPAMain extends js.JSApp {
   def layout(c: RouterCtl[Loc], r: Resolution[Loc]) = {
     <.div(
       // here we use plain Bootstrap class names as these are specific to the top level layout defined here
-      <.nav(^.className := "navbar navbar-inverse navbar-fixed-top",
+      <.nav(^.className := "navbar navbar-dark bg-inverse navbar-fixed-top",
+        <.button(^.className:="navbar-toggler hidden-sm-up", ^.`type`:="button", "data-toggle".reactAttr :="collapse","data-target".reactAttr:="#mainCollapse", "aria-controls".reactAttr := "mainCollapse", "aria-expanded".reactAttr := "false", "aria-label".reactAttr := "Toggle navigation"),
         <.div(^.className := "container",
           <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "SPA Tutorial")),
-          <.div(^.className := "collapse navbar-collapse",
+          <.div(^.className := "collapse navbar-toggleable-xs", ^.id := "mainCollapse",
             // connect menu to model, because it needs to update when the number of open todos changes
             todoCountWrapper(proxy => MainMenu(c, r.page, proxy))
           )

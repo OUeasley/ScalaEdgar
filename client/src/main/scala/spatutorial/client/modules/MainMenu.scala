@@ -40,11 +40,11 @@ object MainMenu {
       Callback.when(props.proxy.value.isEmpty)(props.proxy.dispatch(RefreshTodos))
 
     def render(props: Props) = {
-      <.ul(bss.navbar)(
+      <.ul(^.className := "nav navbar-nav")(
         // build a list of menu items
         for (item <- menuItems) yield {
-          <.li(^.key := item.idx, (props.currentLoc == item.location) ?= (^.className := "active"),
-            props.router.link(item.location)(item.icon, " ", item.label(props))
+          <.li(^.key := item.idx, ^.className := "nav-item" ,(props.currentLoc == item.location) ?= (^.className := "active"),
+            props.router.link(item.location)(item.icon, " ", item.label(props),^.className := "nav-link")
           )
         }
       )

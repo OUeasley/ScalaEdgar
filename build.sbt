@@ -72,9 +72,7 @@ lazy val server = (project in file("server"))
     commands += ReleaseCmd,
     // connect to the client project
     scalaJSProjects := clients,
-    pipelineStages := Seq(scalaJSProd, digest, gzip),
-    // compress CSS
-    LessKeys.compress in Assets := true
+    pipelineStages := Seq(scalaJSProd, digest, gzip)
   )
   .enablePlugins(PlayScala)
   .disablePlugins(PlayLayoutPlugin) // use the standard directory layout instead of Play's custom
