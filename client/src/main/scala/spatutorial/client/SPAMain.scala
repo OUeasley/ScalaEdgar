@@ -24,6 +24,8 @@ object SPAMain extends js.JSApp {
 
   case object TodoLoc extends Loc
 
+  case object RecentFilingsLoc extends Loc
+
   // configure the router
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
     import dsl._
@@ -32,6 +34,7 @@ object SPAMain extends js.JSApp {
     // wrap/connect components to the circuit
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => SPACircuit.wrap(_.motd)(proxy => Dashboard(ctl, proxy)))
       | staticRoute("#todo", TodoLoc) ~> renderR(ctl => todoWrapper(Todo(_)))
+      | staticRoute("#recent", RecentFilingsLoc) ~> renderR(ctl => todoWrapper(Todo(_)))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
@@ -43,10 +46,14 @@ object SPAMain extends js.JSApp {
       <.nav(^.className := "navbar navbar-dark bg-inverse navbar-fixed-top",
         <.button(^.className:="navbar-toggler hidden-sm-up", ^.`type`:="button", "data-toggle".reactAttr :="collapse","data-target".reactAttr:="#mainCollapse", "aria-controls".reactAttr := "mainCollapse", "aria-expanded".reactAttr := "false", "aria-label".reactAttr := "Toggle navigation"),
         <.div(^.className := "container",
-          <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "SPA Tutorial")),
+          <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "SEC Company Filings")),
           <.div(^.className := "collapse navbar-toggleable-xs", ^.id := "mainCollapse",
             // connect menu to model, because it needs to update when the number of open todos changes
-            todoCountWrapper(proxy => MainMenu(c, r.page, proxy))
+            todoCountWrapper(proxy => MainMenu(c, r.page, proxy)),
+            <.form(^.className := "form-inline pull-xs-right",
+              <.input(^.className := "form-control", ^.`type` := "text", ^.placeholder := "Ticker"),
+              <.button(^.className := "btn btn-outline-success", ^.`type` := "submit", "Search")
+            )
           )
         )
       ),

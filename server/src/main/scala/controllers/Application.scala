@@ -25,7 +25,7 @@ class Application @Inject() (implicit val config: Configuration, env: Environmen
 	val apiService = new ApiService(system)
 
 	def index = Action {
-		Ok(views.html.index("SPA tutorial"))
+		Ok(views.html.index("SEC Edgar"))
 	}
 
 	def latestByCompany(company: String) = Action {

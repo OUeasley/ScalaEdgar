@@ -5,7 +5,7 @@ import diode.react._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
-import spatutorial.client.SPAMain.{Loc, TodoLoc}
+import spatutorial.client.SPAMain.{Loc, RecentFilingsLoc, TodoLoc}
 import spatutorial.client.components._
 
 import scala.util.Random
@@ -38,7 +38,7 @@ object Dashboard {
         state.motdWrapper(Motd(_)),
         Chart(cp),
         // create a link to the To Do view
-        <.div(props.router.link(TodoLoc)("Check your todos!"))
+        <.div(props.router.link(RecentFilingsLoc)("Check recent filings"))
       )
     }
     .build

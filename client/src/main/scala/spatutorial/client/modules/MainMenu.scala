@@ -4,7 +4,7 @@ import diode.react.ModelProxy
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
-import spatutorial.client.SPAMain.{DashboardLoc, Loc, TodoLoc}
+import spatutorial.client.SPAMain.{DashboardLoc, Loc, RecentFilingsLoc, TodoLoc}
 import spatutorial.client.components.Bootstrap.CommonStyle
 import spatutorial.client.components.Icon._
 import spatutorial.client.components._
@@ -18,7 +18,7 @@ object MainMenu {
 
   case class Props(router: RouterCtl[Loc], currentLoc: Loc, proxy: ModelProxy[Option[Int]])
 
-  private case class MenuItem(idx: Int, label: (Props) => ReactNode, icon: Icon, location: Loc)
+  private case class MenuItem(idx: Int, label: (Props) => ReactNode, icon: ReactElement, location: Loc)
 
   // build the Todo menu item, showing the number of open todos
   private def buildTodoMenu(props: Props): ReactElement = {
@@ -30,8 +30,8 @@ object MainMenu {
   }
 
   private val menuItems = Seq(
-    MenuItem(1, _ => "Dashboard", Icon.dashboard, DashboardLoc),
-    MenuItem(2, buildTodoMenu, Icon.check, TodoLoc)
+    MenuItem(1, _ => "Dashboard", <.i(^.className := "fa fa-dashboard"), DashboardLoc),
+    MenuItem(2, _ => "Recent Filings", <.i(^.className := "fa fa-clock-o"), RecentFilingsLoc)
   )
 
   private class Backend($: BackendScope[Props, Unit]) {
