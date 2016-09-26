@@ -1,14 +1,10 @@
 package spatutorial.client.components
 
-import diode.data.Pot
-import diode.react.ModelProxy
-import japgolly.scalajs.react.{Callback, ReactComponentB}
+import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import spatutorial.client.components.Bootstrap.{Button, CommonStyle, Panel}
-import spatutorial.client.components.TodoList.TodoListProps
-import spatutorial.client.services.UpdateMotd
-import spatutorial.shared.{TodoHigh, TodoItem, TodoLow, TodoNormal}
-
+import spatutorial.client.components.Bootstrap.{CommonStyle, Button}
+import spatutorial.shared._
+import scalacss.ScalaCssReact._
 /**
   * Created by beasley on 9/21/2016.
   */

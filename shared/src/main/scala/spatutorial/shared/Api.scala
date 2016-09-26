@@ -13,5 +13,5 @@ trait Api {
   // delete a Todo
   def deleteTodo(itemId: String): Seq[TodoItem]
 
-  def getLatestForCompany(company: String) : Unit
+  def getLatestForCompany(company: String) : Seq[Filing]
 }
