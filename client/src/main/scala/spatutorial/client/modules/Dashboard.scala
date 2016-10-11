@@ -17,6 +17,7 @@ object Dashboard {
 
   case class State(motdWrapper: ReactConnectProxy[Pot[String]])
 
+
   // create dummy data for the chart
   val cp = Chart.ChartProps(
     "Test chart",

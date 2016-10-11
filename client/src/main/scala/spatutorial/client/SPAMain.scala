@@ -30,11 +30,10 @@ object SPAMain extends js.JSApp {
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
     import dsl._
 
-    val todoWrapper = SPACircuit.connect(_.todos)
+    val filingWrapper = SPACircuit.connect(_.filings)
     // wrap/connect components to the circuit
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => SPACircuit.wrap(_.motd)(proxy => Dashboard(ctl, proxy)))
-      | staticRoute("#todo", TodoLoc) ~> renderR(ctl => todoWrapper(Todo(_)))
-      | staticRoute("#recent", RecentFilingsLoc) ~> renderR(ctl => todoWrapper(Todo(_)))
+      | staticRoute("#recent", RecentFilingsLoc) ~> renderR(ctl => filingWrapper(Todo(_)))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
