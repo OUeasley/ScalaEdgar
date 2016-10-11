@@ -41,7 +41,6 @@ class ScalaEdgar {
 	def lastestByCompany(ticker :String): NodeSeq = {
 		val scalaEdgarConfiguration = ScalaEdgarConfiguration(ticker = "AAPL")
 		parseXML(scalaEdgarConfiguration)
-		parseToJson
 	}
 }
 
